@@ -15,7 +15,7 @@ class DepotRequest extends Request
      */
     public function authorize()
     {
-        return false;
+        return $this->user()->isAdmin();
     }
 
     /**
@@ -25,7 +25,10 @@ class DepotRequest extends Request
     public function rules()
     {
         return [
-            //
+            'number' => 'required|between:1,2|integer',
+            'user_id' => 'required|integer|exists:users,id',
+            'rack'   => 'required|integer|min:1',
+            'shelf'  => 'required|integer|min:1',
         ];
     }
 }

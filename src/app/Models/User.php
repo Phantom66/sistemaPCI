@@ -45,12 +45,14 @@ use Illuminate\Foundation\Auth\Access\Authorizable;
  * @method static \Illuminate\Database\Query\Builder|\PCI\Models\User whereUpdatedAt($value)
  * @method static \Illuminate\Database\Query\Builder|\PCI\Models\User whereCreatedBy($value)
  * @method static \Illuminate\Database\Query\Builder|\PCI\Models\User whereUpdatedBy($value)
+ * @property-read \Illuminate\Database\Eloquent\Collection|Depot[] $manages
  */
 class User extends AbstractBaseModel implements
     AuthenticatableContract,
     AuthorizableContract,
     CanResetPasswordContract
 {
+
     use Authenticatable, Authorizable, CanResetPassword;
 
     /**
@@ -77,12 +79,17 @@ class User extends AbstractBaseModel implements
      */
     protected $table = 'users';
 
-
     /**
      * The attributes that are mass assignable.
      * @var array
      */
-    protected $fillable = ['name', 'email', 'password', 'status', 'confirmation_code'];
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'status',
+        'confirmation_code'
+    ];
 
     /**
      * The attributes excluded from the model's JSON form.
@@ -155,7 +162,7 @@ class User extends AbstractBaseModel implements
      * Regresa una coleccion de almacenes que maneja.
      * Esta relacion se refiere al Jefe de
      * Almacen administra/maneja almacen.
-     * @return Collection
+     * @return Depot
      */
     public function manages()
     {

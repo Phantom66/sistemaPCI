@@ -2,7 +2,14 @@
 
 @section('content')
     <div class="container">
-        <h1>Almacen {{$depot->number}}</h1>
+        <h1>
+            Almacen {{$depot->number}}
+
+            @include(
+                'partials.buttons.edit-delete',
+                ['resource' => 'depots', 'id' => $depot->id]
+            )
+        </h1>
 
         <h2>
             Administrador por
