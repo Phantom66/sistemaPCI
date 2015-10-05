@@ -3,7 +3,7 @@
 @section('content')
     <div class="container">
         <h1>
-            Almacen {{$depot->number}}
+            {{trans('models.depots.singular')}} {{$depot->number}}
 
             @include(
                 'partials.buttons.edit-delete',
@@ -22,12 +22,13 @@
         <h3>
             Anaquel {{$depot->rack}}, Alacena {{$depot->shelf}}
         </h3>
-    </div>
 
-    @if(isset($items))
-        @include('partials.genericTable', [
-            'data' => $items,
-            'title' => trans('models.items.plural')
+        @include('depots.partials.items')
+
+        @include('partials.admins.show-basic-audit', [
+            'model'    => $depot,
+            'created'  => trans('models.depots.singular') . ' creado',
+            'updated'  => trans('models.depots.singular') . ' actualizado',
         ])
-    @endif
+    </div>
 @stop

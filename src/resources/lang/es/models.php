@@ -15,6 +15,19 @@ return [
     'depots.store.success'       => 'Almacen creada exitosamente.',
     'depots.update.success'      => 'Almacen actualizada exitosamente.',
     /**
+     * Cargo
+     */
+    'positions.index'          => 'Ver Cargos',
+    'positions.show'           => 'Ver Cargo',
+    'positions.create'         => 'Crear Cargo',
+    'positions.edit'           => 'Editar Cargo',
+    'positions.destroy'        => 'Eliminar Cargo',
+    'positions.plural'         => 'Cargos',
+    'positions.singular'       => 'Cargo',
+    'positions.fa-icon' => 'briefcase',
+    'positions.store.success'  => 'Cargo creado exitosamente.',
+    'positions.update.success' => 'Cargo actualizado exitosamente.',
+    /**
      * Categoria
      */
     'cats.index'                   => 'Ver Categorias',
@@ -131,6 +144,19 @@ return [
     'itemTypes.fa-icon'            => 'random',
     'itemTypes.store.success'      => 'Tipo de Item creado exitosamente.',
     'itemTypes.update.success'     => 'Tipo de Item actualizado exitosamente.',
+    /**
+     * Tipos de Cantidad
+     */
+    'stockTypes.index'          => 'Ver Tipos de Cantidad',
+    'stockTypes.show'           => 'Ver Tipo de Cantidad',
+    'stockTypes.create'         => 'Crear Tipo de Cantidad',
+    'stockTypes.edit'           => 'Editar Tipo de Cantidad',
+    'stockTypes.destroy'        => 'Eliminar Tipo de Cantidad',
+    'stockTypes.plural'         => 'Tipos de Cantidad',
+    'stockTypes.singular'       => 'Tipo de Cantidad',
+    'stockTypes.fa-icon'        => 'asterisk',
+    'stockTypes.store.success'  => 'Tipo de Cantidad creado exitosamente.',
+    'stockTypes.update.success' => 'Tipo de Cantidad actualizado exitosamente.',
     /**
      * Tipos de Nota
      */

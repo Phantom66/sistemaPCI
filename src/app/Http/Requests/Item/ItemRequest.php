@@ -30,10 +30,10 @@ class ItemRequest extends Request
             'item_type_id'    => 'required|numeric',
             'maker_id'        => 'required|numeric',
             'sub_category_id' => 'required|numeric',
+            'stock_type_id' => 'required|numeric',
             'asoc'            => 'regex:/^[abc]+$/',
             'priority'        => 'numeric|between:1,100',
             'desc'            => 'required|string|between:3,255',
-            'stock'           => 'required|numeric|min:0',
             'minimum'         => 'required|numeric|min:0',
         ];
     }

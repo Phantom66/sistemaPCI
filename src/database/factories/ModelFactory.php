@@ -66,12 +66,23 @@ $factory->define(PCI\Models\Item::class, function () use ($faker) {
         'sub_category_id' => rand(1, 2),
         'maker_id'        => rand(1, 2),
         'item_type_id'    => rand(1, 2),
+        'stock_type_id' => rand(1, 3),
         'asoc'            => $faker->randomElement(['a', 'b', 'c']),
         'priority'        => rand(1, 100),
         'desc'            => $faker->sentence,
-        'stock'           => rand(0, 10000),
         'minimum'         => rand(0, 10000),
     ];
+});
+
+$factory->defineAs(PCI\Models\Item::class, 'full', function () use ($factory) {
+    $item = $factory->raw(PCI\Models\Item::class);
+
+    return array_merge($item, [
+        'sub_category_id' => factory(PCI\Models\SubCategory::class)->create()->id,
+        'maker_id'        => factory(PCI\Models\Maker::class)->create()->id,
+        'item_type_id'    => factory(PCI\Models\ItemType::class)->create()->id,
+        'stock_type_id' => factory(PCI\Models\StockType::class)->create()->id,
+    ]);
 });
 
 $factory->define(PCI\Models\Movement::class, function () use ($faker) {

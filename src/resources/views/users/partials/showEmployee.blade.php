@@ -10,11 +10,11 @@
                 <small>{{$user->employee->nationality->desc}}</small>
             @endif
 
-                @if($user->employee->ci)
-                    <small>C.I. {{$user->employee->ci}}</small>
+            @if($user->employee->ci)
+                <small>C.I. {{$user->employee->ci}}</small>
 
-                    <br/>
-                @endif
+                <br/>
+            @endif
         @endif
 
         @if($user->employee->gender)
@@ -37,7 +37,7 @@
     @if(Auth::user()->isOwnerOrAdmin($user->id))
         @if($user->address)
             <h2>
-                Direccion
+                {{trans('models.addresses.singular')}}
             </h2>
             <h3>
                 {{$user->address->formattedDetails}}
@@ -48,31 +48,12 @@
             </h3>
         @endif
 
-            <hr/>
-
-        @if(Auth::user()->isAdmin())
-            <h4>
-                Usuario creado
-                {{$user->created_at->diffForHumans()}}
-                <small>
-                    por
-                    <a href="{{route('users.show', $user->createdBy()->name)}}">
-                        {{$user->createdBy()->name}}
-                    </a>
-                </small>
-            </h4>
-
-            <h4>
-                Usuario actualizado
-                {{$user->created_at->diffForHumans()}}
-                <small>
-                    por
-                    <a href="{{route('users.show', $user->updatedBy()->name)}}">
-                        {{$user->updatedBy()->name}}
-                    </a>
-                </small>
-            </h4>
-        @endif
+        @include('partials.admins.show-basic-audit', [
+            'model' => $user,
+            'resource' => 'users',
+            'created' => trans('models.users.singular') . ' creada',
+            'updated' => trans('models.users.singular') . ' actualizada'
+        ])
     @endif
 </section>
 @endif

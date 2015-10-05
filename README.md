@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/slayerfat/sistemaPCI.svg)](https://travis-ci.org/slayerfat/sistemaPCI)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/slayerfat/sistemaPCI/badges/quality-score.png?b=develop)](https://scrutinizer-ci.com/g/slayerfat/sistemaPCI/?branch=develop)
+[![Code Climate](https://codeclimate.com/github/slayerfat/sistemaPCI/badges/gpa.svg)](https://codeclimate.com/github/slayerfat/sistemaPCI)
+[![Codacy Badge](https://api.codacy.com/project/badge/a1d556b5463d4a58890659bab739e53e)](https://www.codacy.com/app/slayerfat/sistemaPCI)
 
 Sistema de Gestion de Inventario Para la Division de Rehabilitacion Ocupacional.
 
@@ -10,7 +12,8 @@ Misión Alma Mater, Programa Nacional de Formación: Informatica, Trayecto 3, IU
 - [x] v0.1 Usuario
 - [x] v0.2 Empleado
 - [x] v0.3 Almacen
-- [ ] v0.3.x Item
+- [x] v0.3.x Item
+- [ ] v0.3.x Otros
 - [ ] v0.4 Pedidos
 - [ ] v0.4.x Notas
 
