@@ -1,14 +1,16 @@
 <?php namespace PCI\Policies\Item;
 
-use PCI\Models\Item;
+use PCI\Mamarrachismo\Converter\interfaces\StockTypeConverterInterface;
+use PCI\Mamarrachismo\Converter\StockTypeConverter;
 use PCI\Models\Petition;
 use PCI\Models\User;
 
 /**
  * Class PetitionPolicy
+ *
  * @package PCI\Policies
- * @author Alejandro Granadillo <slayerfat@gmail.com>
- * @link https://github.com/slayerfat/sistemaPCI Repositorio en linea.
+ * @author  Alejandro Granadillo <slayerfat@gmail.com>
+ * @link    https://github.com/slayerfat/sistemaPCI Repositorio en linea.
  */
 class PetitionPolicy
 {
@@ -30,18 +32,51 @@ class PetitionPolicy
     /**
      * @param \PCI\Models\User $user
      * @param \PCI\Models\Petition $petition
-     * @param \PCI\Models\Item $item
-     * @param int $amount
      * @return bool
      */
-    public function addItem(User $user, Petition $petition, Item $item, $amount)
+    public function update(User $user, Petition $petition)
     {
+        if (!$petition instanceof Petition) {
+            throw new \LogicException;
+        }
+
+        // si no es falso entonces ha sido aprobado o rechazado.
+        if (!is_null($petition->status)) {
+            return false;
+        }
+
+        return $user->isOwnerOrAdmin($petition->id);
+    }
+
+    /**
+     * @param \PCI\Models\User                               $user
+     * @param \PCI\Models\Petition                           $petition
+     * @param StockTypeConverterInterface|StockTypeConverter $converter
+     * @param int                                            $amount
+     * @param int                                            $type
+     * @return bool
+     */
+    public function addItem(
+        User $user,
+        Petition $petition,
+        StockTypeConverterInterface $converter,
+        $amount,
+        $type
+    ) {
         if (!$petition) {
             throw new \LogicException;
         }
 
+        $item = $converter->getItem();
+
+        if (!$converter->isConvertible()) {
+            return $item->stock_type_id == $type;
+        }
+
+        $converted = $converter->convert($type, $amount);
+
         if ($user->isUser() || $user->isAdmin()) {
-            return $item->stock >= $amount;
+            return $item->stock >= $converted && $converted > 0;
         }
 
         return false;

@@ -1,9 +1,14 @@
 <?php namespace PCI\Models;
 
+use Illuminate\Database\Query\Builder;
+use PCI\Models\Traits\HasCommentsAttribute;
+use PCI\Models\Traits\HasTernaryStatusAttribute;
+
 /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
 
 /**
  * PCI\Models\Petition
+ *
  * @package PCI\Models
  * @author Alejandro Granadillo <slayerfat@gmail.com>
  * @link https://github.com/slayerfat/sistemaPCI Repositorio en linea.
@@ -19,6 +24,7 @@
  * @property integer $updated_by
  * @property-read PetitionType $type
  * @property-read User $user
+ * @property-read string $formatted_status
  * @property-read \Illuminate\Database\Eloquent\Collection|Item[] $items
  * @property-read \Illuminate\Database\Eloquent\Collection|Note[] $notes
  * @method static \Illuminate\Database\Query\Builder|\PCI\Models\Petition whereId($value)
@@ -35,8 +41,11 @@
 class Petition extends AbstractBaseModel
 {
 
+    use HasTernaryStatusAttribute, HasCommentsAttribute;
+
     /**
      * The attributes that are mass assignable.
+     *
      * @var array
      */
     protected $fillable = [
@@ -50,12 +59,40 @@ class Petition extends AbstractBaseModel
      * se refiere a Carbon\Carbon dates.
      * En otras palabras, genera una instancia
      * de Carbon\Carbon para cada campo.
+     *
      * @var array
      */
     protected $dates = ['request_date'];
 
     /**
+     * The attributes that should be casted to native types.
+     *
+     * @var array
+     */
+    protected $casts = ['status' => 'boolean'];
+
+    /**
+     * Regresa la cantidad en numeros de items asociados.
+     *
+     * @return int
+     */
+    public function getItemCountAttribute()
+    {
+        return $this->items->count();
+    }
+
+    /**
+     * @param Builder $query
+     * @return Petition[]
+     */
+    public function scopeLatest($query)
+    {
+        return $query->orderBy('updated_at', 'desc')->take(4)->get();
+    }
+
+    /**
      * Regresa el tipo de pedido asociado.
+     *
      * @return \Illuminate\Database\Eloquent\Relations\belongsTo
      */
     public function type()
@@ -65,6 +102,7 @@ class Petition extends AbstractBaseModel
 
     /**
      * Regresa el usuario asociado al pedido.
+     *
      * @return \Illuminate\Database\Eloquent\Relations\belongsTo
      */
     public function user()
@@ -74,19 +112,35 @@ class Petition extends AbstractBaseModel
 
     /**
      * Regresa una coleccion de items asociados.
+     *
      * @return \Illuminate\Database\Eloquent\Relations\belongsToMany
      */
     public function items()
     {
-        return $this->belongsToMany(Item::class)->withPivot('quantity');
+        return $this->belongsToMany(Item::class)->withPivot('quantity', 'stock_type_id');
     }
 
     /**
      * Regresa una coleccion de notas asociadas.
+     *
      * @return \Illuminate\Database\Eloquent\Relations\hasMany
      */
     public function notes()
     {
         return $this->hasMany(Note::class);
+    }
+
+    /**
+     * El mensaje a mostrar ['null|true|false'] string
+     *
+     * @return array
+     */
+    public function getStatusMessage()
+    {
+        return [
+            'null'  => 'Por aprobar',
+            'true'  => 'Aprobado',
+            'false' => 'No aprobado',
+        ];
     }
 }

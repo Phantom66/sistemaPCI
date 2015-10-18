@@ -2,8 +2,15 @@
 
 namespace PCI\Http\Controllers\User;
 
+use Event;
+use Flash;
+use Gate;
+use Illuminate\Contracts\Auth\Guard;
 use Illuminate\View\Factory as View;
+use PCI\Events\Petition\NewPetitionCreation;
+use PCI\Events\Petition\PetitionUpdatedByCreator;
 use PCI\Http\Controllers\Controller;
+use PCI\Http\Controllers\Traits\CheckDestroyStatusTrait;
 use PCI\Http\Requests;
 use PCI\Http\Requests\User\PetitionRequest;
 use PCI\Models\PetitionType;
@@ -13,22 +20,27 @@ use Redirect;
 class PetitionsController extends Controller
 {
 
+    use CheckDestroyStatusTrait;
+
     /**
      * La implementacion del repositorio de pedidos.
+     *
      * @var \PCI\Repositories\Interfaces\User\PetitionRepositoryInterface
      */
     private $repo;
 
     /**
      * La factoria de las vistas.
+     *
      * @var \Illuminate\View\Factory
      */
     private $view;
 
     /**
      * Genera la instancia de este controlador.
+     *
      * @param \PCI\Repositories\Interfaces\User\PetitionRepositoryInterface $repo
-     * @param \Illuminate\View\Factory $view
+     * @param \Illuminate\View\Factory                                      $view
      */
     public function __construct(PetitionRepositoryInterface $repo, View $view)
     {
@@ -39,6 +51,7 @@ class PetitionsController extends Controller
 
     /**
      * Display a listing of the resource.
+     *
      * @return \Illuminate\Http\Response
      */
     public function index()
@@ -50,6 +63,7 @@ class PetitionsController extends Controller
 
     /**
      * Show the form for creating a new resource.
+     *
      * @return \Illuminate\Http\Response
      */
     public function create()
@@ -64,54 +78,98 @@ class PetitionsController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
      * @param \PCI\Http\Requests\User\PetitionRequest $request
+     * @param \Illuminate\Contracts\Auth\Guard        $auth
      * @return \Illuminate\Http\Response
      */
-    public function store(PetitionRequest $request)
+    public function store(PetitionRequest $request, Guard $auth)
     {
+        /** @var \PCI\Models\Petition $petition */
         $petition = $this->repo->create($request->all());
+
+        /** @var \PCI\Models\User $user */
+        $user = $auth->user();
+
+        Event::fire(new NewPetitionCreation($petition, $user));
+
+        Flash::success(trans('models.petitions.store.success'));
 
         return Redirect::route('petitions.show', $petition->id);
     }
 
     /**
      * Display the specified resource.
+     *
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
     public function show($id)
     {
-        //
+        $petition = $this->repo->find($id);
+
+        return $this->view->make('petitions.show', compact('petition'));
     }
 
     /**
      * Show the form for editing the specified resource.
+     *
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
     public function edit($id)
     {
-        //
+        $petition = $this->repo->find($id);
+
+        if (Gate::denies('update', $petition)) {
+            return $this->redirectBack(
+                'Los '
+                . trans('models.petitions.plural')
+                . ' solo pueden ser editados si están por aprobar.'
+            );
+        }
+
+        // todo: segun perfil, usuario no hace entrada
+        $types = PetitionType::lists('desc', 'id');
+
+        return $this->view->make('petitions.edit', compact('petition', 'types'));
     }
 
     /**
      * Update the specified resource in storage.
+     *
      * @param \PCI\Http\Requests\User\PetitionRequest $request
-     * @param  int $id
+     * @param  int                                    $id
      * @return \Illuminate\Http\Response
      */
     public function update(PetitionRequest $request, $id)
     {
-        //
+        /** @var \PCI\Models\Petition $petition */
+        $petition = $this->repo->update($id, $request->all());
+
+        /** @var \PCI\Models\User $user */
+        $user = auth()->user();
+
+        Event::fire(new PetitionUpdatedByCreator($petition, $user));
+
+        Flash::success(trans('models.petitions.update.success'));
+
+        return Redirect::route('petitions.show', $petition->id);
     }
 
     /**
      * Remove the specified resource from storage.
+     *
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
     {
-        //
+        return $this->checkDestroyStatus(
+            $this->repo->delete($id),
+            'petitions',
+            'Para eliminar un ' . trans('models.petitions.singular')
+            . ', este no debe estar asociado a otros recursos y debe estar en estado de por aprobar.'
+        );
     }
 }

@@ -1,3 +1,7 @@
+<meta name="form-data"
+      data-petition-items-url="{{ route('api.petitions.items') }}"
+      data-petition-items-id="{{ $petition->id }}"
+      data-editing="{{ $petition->id ? "true" : "false" }}">
 {!!
 
 ControlGroup::generate(
@@ -40,6 +44,22 @@ ControlGroup::generate(
 @stop
 
 @section('js')
+    <script>
+        /**
+         * Como los comentarios llegan sucios, debemos limpiarlos
+         * cuando estamos creando una nueva peticion.
+         */
+        $(function () {
+            var $comments = $('#comments');
+            var val = $comments.val();
+
+            if ($('meta[name="form-data"]').data('editing')) return;
+
+            if (val.length > 1) {
+                $comments.val('').prop('placeholder', 'Introduzca un comentario.');
+            }
+        });
+    </script>
     <script>
         /**
          * la informacion html que es usada para generar
@@ -166,7 +186,11 @@ ControlGroup::generate(
             },
 
             addSelected: function (id) {
-                this.selected.push(id);
+                this.selected.push(parseInt(id));
+            },
+
+            removeSelected: function (id) {
+                this.selected.splice(this.selected.indexOf(parseInt(id)), 1);
             },
 
             setStock: function (stock) {
@@ -181,65 +205,146 @@ ControlGroup::generate(
                 }.bind(this));
 
                 return selected;
+            },
+
+            appendItem: function (e) {
+                // iniciamos el objeto
+                items.setItem(e.params.data);
+
+                if (items.alreadySelected()) {
+                    return;
+                }
+
+                var itemBag = $('#itemBag');
+
+                // chequeamos que el stock no sea 0
+                if (items.stock.plain < 1) {
+                    var $error = $('<label for="itemBag" class="control-label col-sm-8">' +
+                        items.data.desc + ' no se encuentra en existencia.' +
+                        '</label>');
+
+                    itemBag.append($error);
+
+                    // espera 10 segundo y activa la animacion
+                    $error.animate({opacity: 1}, 10000, 'linear', function () {
+                        $error.animate({opacity: 0}, 2000, 'linear', function () {
+                            $error.remove();
+                        });
+                    });
+
+                    return;
+                }
+
+                // como esta mamarrachada es muy grande, la
+                // segmentamos para que pueda ser mas facil de digerir
+                var itemInput = '<div class="itemBag-item" data-id="' + items.data.id + '">'
+                    + '<label for="itemBag" class="control-label col-sm-7">'
+                    + items.data.desc
+                    + '</label>'
+                    + '<div class="col-sm-2">' +
+                    '<input class="form-control" name="item-id-' + items.data.id + '" type="number" min="1" value="' + items.stock.plain + '" max="' + items.stock.plain + '">' +
+                    '<span class="help-block">' + items.stock.formatted + ' en total.' + '</span>' +
+                    '</div>';
+
+                var options = '';
+
+                // generamos las opciones que van dentro del select
+                Object.keys(stockTypes.types).forEach(function (key) {
+                    stockTypes.types[key].id == items.data.stock_type_id
+                        ? options += '<option value="' + stockTypes.types[key].id + '" selected="selected">' + stockTypes.types[key].desc + '</option>'
+                        : options += '<option value="' + stockTypes.types[key].id + '">' + stockTypes.types[key].desc + '</option>';
+                });
+
+                // este select contiene los tipos de cantidad
+                var select = '<div class="col-sm-3">  <div class="input-group">' +
+                    '<select class="form-control" name="stock-type-id-' +
+                    items.data.id + '">' + options + '</select>' +
+                    '<span class="input-group-addon itemBag-remove-item" ' +
+                    'data-id="' + items.data.id + '">' +
+                    '<i class="fa fa-times"></i></span>' +
+                    '</div>' +
+                    '</div>';
+
+                itemBag.append(itemInput + select);
+
+                items.addSelected(items.data.id);
             }
         };
 
         // mamarrachada de segundo orden
         $itemList.on("select2:select", function (e) {
-            // iniciamos el objeto
-            items.setItem(e.params.data);
+            items.appendItem(e);
 
-            if (items.alreadySelected()) {
-                return;
-            }
-
-            var itemBag = $('#itemBag');
-
-            // chequeamos que el stock no sea 0
-            if (items.stock.plain < 1) {
-                var $error = $('<label for="itemBag" class="control-label col-sm-8">' +
-                items.data.desc + ' no se encuentra en existencia.' +
-                '</label>');
-
-                itemBag.append($error);
-
-                // espera 10 segundo y activa la animacion
-                $error.animate({opacity: 1}, 10000, 'linear', function () {
-                    $error.animate({opacity: 0}, 2000, 'linear', function () {
-                        $error.remove();
-                    });
+            $('.itemBag-remove-item').click(function () {
+                var $item = $(this).closest('.itemBag-item');
+                var id = $item.data('id');
+                $item.toggle(function () {
+                    items.removeSelected(id);
+                    $item.remove()
                 });
+            });
+        });
+    </script>
 
-                return;
-            }
-
-            // como esta mamarrachada es muy grande, la
-            // segmentamos para que pueda ser mas facil de digerir
-            var itemInput = '<label for="itemBag" class="control-label col-sm-7">'
-                + items.data.desc
-                + '</label>'
-                + '<div class="col-sm-2">' +
-                '<input class="form-control" name="item-id-' + items.data.id + '" type="number" min="1" value="' + items.stock.plain + '" max="' + items.stock.plain + '">' +
-                '<span class="help-block">' + items.stock.formatted + ' en total.' + '</span>' +
-                '</div>';
-
-            var options = '';
-
-            // generamos las opciones que van dentro del select
-            Object.keys(stockTypes.types).forEach(function (key) {
-                stockTypes.types[key].id == items.data.stock_type_id
-                    ? options += '<option value="' + stockTypes.types[key].id + '" selected="selected">' + stockTypes.types[key].desc + '</option>'
-                    : options += '<option value="' + stockTypes.types[key].id + '">' + stockTypes.types[key].desc + '</option>';
+    <script>
+        $(function () {
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('input[name="_token"]').attr('value')
+                }
             });
 
-            // este select contiene los tipos de cantidad
-            var select = '<div class="col-sm-3">'
-                + '<select class="form-control" name="stock-type-id-' + items.data.id + '">' + options + '</select>' +
+            var $formData = $('meta[name="form-data"]');
+
+            // si no se esta editando, entonces no ocurre nada aca.
+            if (!$formData.data('editing')) return;
+
+            var html = '<div class="col-xs-push-4 col-xs-4 text-center">' +
+                '<i class="fa fa-spinner fa-spin fa-5x"></i>' +
                 '</div>';
 
-            itemBag.append(itemInput + select);
+            function startAjax() {
+                $.ajax({
+                    url: $formData.data('petition-items-url'),
+                    method: 'POST',
+                    dataType: 'json',
+                    data: {
+                        id: $formData.data('petition-items-id')
+                    },
+                    success: function (data) {
+                        var self = this;
+                        $('#itemBag').empty();
+                        Object.keys(data).forEach(function (key) {
+                            var item = {
+                                params: {
+                                    data: null
+                                }
+                            };
 
-            items.addSelected(items.data.id);
-        });
+                            item.params.data = data[key];
+                            items.appendItem(item);
+                        });
+
+                        $('.itemBag-remove-item').click(function () {
+                            self.removeItem($(this))
+                        });
+                    },
+                    removeItem: function ($element) {
+                        var $item = $element.closest('.itemBag-item');
+                        var id = $item.data('id');
+
+                        $item.toggle(function () {
+                            items.removeSelected(id);
+                            $item.remove()
+                        });
+                    }
+                })
+            }
+
+            $('#itemBag').fadeOut(250, function () {
+                $('#itemBag').append(html).fadeIn(250);
+                startAjax();
+            });
+        })
     </script>
 @stop

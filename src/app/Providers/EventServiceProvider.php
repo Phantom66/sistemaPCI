@@ -14,10 +14,24 @@ class EventServiceProvider extends ServiceProvider
      */
     protected $listen = [
         'PCI\Events\NewUserRegistration' => [
-            'PCI\Listeners\EmailUserConfirmation',
+            'PCI\Listeners\Email\EmailUserConfirmation',
         ],
         'PCI\Events\ConfirmationCodeRequest' => [
-            'PCI\Listeners\EmailUserConfirmation',
+            'PCI\Listeners\Email\EmailUserConfirmation',
+        ],
+        'PCI\Events\Petition\NewPetitionCreation' => [
+            'PCI\Listeners\Email\EmailPetitionEventToAttendants',
+            'PCI\Listeners\Email\EmailPetitionEventToCreator',
+        ],
+        'PCI\Events\Petition\PetitionApprovalRequest' => [
+            'PCI\Listeners\Email\EmailApprovalRequestToAttendants',
+        ],
+        'PCI\Events\Petition\PetitionUpdatedByCreator' => [
+            'PCI\Listeners\Email\EmailPetitionUpdatedToAttendants',
+        ],
+        'PCI\Events\Note\NewNoteCreation' => [
+            'PCI\Listeners\Email\Note\EmailNewNoteToUser',
+            'PCI\Listeners\Email\Note\EmailNewNoteToCreator',
         ],
     ];
 
